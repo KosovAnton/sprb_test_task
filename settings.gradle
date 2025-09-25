@@ -1,0 +1,11 @@
+rootProject.name = 'sprb_test_task'
+
+gradle.ext.versions = [
+        testng      : '7.11.0',
+        restAssured : '5.5.6',
+        jacksonBom  : '2.20.0',
+        allure        : '2.30.0'
+]
+
+gradle.ext.testngParallel = 'methods'
+gradle.ext.testngThreads  = 3

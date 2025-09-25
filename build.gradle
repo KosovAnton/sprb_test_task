@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '3.0.0'
+    id 'io.qameta.allure-download' version '3.0.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+def v = gradle.ext.versions
+
+dependencies {
+    testImplementation "org.testng:testng:${v.testng}"
+    testImplementation "io.rest-assured:rest-assured:${v.restAssured}"
+    testImplementation "io.rest-assured:json-path:${v.restAssured}"
+    testImplementation(platform("com.fasterxml.jackson:jackson-bom:${v.jacksonBom}"))
+    testImplementation "com.fasterxml.jackson.core:jackson-databind"
+    testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    testImplementation "com.fasterxml.jackson.core:jackson-annotations"
+    testImplementation "com.fasterxml.jackson.core:jackson-core"
+    testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    testImplementation "org.awaitility:awaitility:4.2.2"
+    testImplementation platform("io.qameta.allure:allure-bom:${v.allure}")
+    testImplementation "io.qameta.allure:allure-testng"
+    testImplementation "io.qameta.allure:allure-rest-assured"
+    testImplementation "io.qameta.allure:allure-attachments"
+    testImplementation "org.slf4j:slf4j-api:2.0.13"
+    testRuntimeOnly  "ch.qos.logback:logback-classic:1.5.6"
+}
+
+test {
+    useTestNG {
+        parallel = (project.findProperty('testngParallel') ?: gradle.ext.testngParallel).toString()
+        threadCount = (project.findProperty('testngThreads')  ?: gradle.ext.testngThreads) as int
+        listeners << 'io.qameta.allure.testng.AllureTestNg'
+        listeners << 'com.spribe.listeners.AnnotationTransformer'
+    }
+
+    systemProperty "allure.results.directory", layout.buildDirectory.dir("allure-results").get().asFile.absolutePath
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+allure {
+    version = '2.29.0'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-parameters']
+}
+
+tasks.named('test') {
+    doFirst {
+        delete(layout.buildDirectory.dir("allure-results"))
+        delete(layout.buildDirectory.dir("reports/allure-report"))
+    }
+
+    finalizedBy(tasks.named('allureReport'))
+}
+
+tasks.named('allureReport') {
+    doFirst {
+        delete(layout.buildDirectory.dir("reports/allure-report"))
+    }
+}

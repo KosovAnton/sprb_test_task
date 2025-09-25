@@ -1,0 +1,8 @@
+baseUrl: "http://3.68.165.45"
+connectionTimeoutMs: 3000
+readTimeoutMs: 5000
+logHttp: true
+userDelete: true
+editor: "supervisor"
+defaultHeaders:
+  Accept-Language: "en-US"
